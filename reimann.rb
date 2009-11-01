@@ -1,5 +1,7 @@
 module Math
   def self.reimann a, b, n
+    # As a matter of convenience, force a < b.
+    # If a == b, there's no hope for you.
     if a > b
       a,b = b,a
     end
