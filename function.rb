@@ -32,13 +32,16 @@ class Math::Function < Proc
     end
     attr_reader :function,:a,:b,:n
     attr_accessor :sum
+    def f *args
+      function[*args]
+    end
     def run
       n.times.inject(init_loop,&method(:run_loop))
       end_loop
     end
     alias init_loop a
     def run_loop x, i
-      self.sum += function[x]
+      self.sum += f(x)
       increment x
     end
     def increment x
@@ -73,6 +76,20 @@ class Math::Function < Proc
   end
   def midpoint a,b,n
     MidReimann.new(self,a,b,n).run
+  end
+  
+  class Trapezoid < Reimann
+    def run_loop x,i
+      right = increment x
+      sum+=f(x)+f(right)
+      right
+    end
+    def end_loop
+      super/2
+    end
+  end
+  def trapezoid a,b,n
+    Trapezoid.new(self,a,b,n).run
   end
 end
 
