@@ -21,17 +21,16 @@ class Math::Function < Proc
     # As a matter of convenience, force a < b.
     # If a == b, there's no hope for you.
     def initialize function, a, b, n
-      @function = function
+      self.function = function
       if a > b
         a,b = b,a
       end
-      @a = a
-      @b = b
-      @n = n
+      self.a = a
+      self.b = b
+      self.n = n
       self.sum = 0
     end
-    attr_reader :function,:a,:b,:n
-    attr_accessor :sum
+    attr_accessor :function,:a,:b,:n,:sum
     def f *args
       function[*args]
     end
@@ -81,7 +80,7 @@ class Math::Function < Proc
   class Trapezoid < Reimann
     def run_loop x,i
       right = increment x
-      sum+=f(x)+f(right)
+      self.sum+=f(x)+f(right)
       right
     end
     def end_loop
@@ -90,6 +89,30 @@ class Math::Function < Proc
   end
   def trapezoid a,b,n
     Trapezoid.new(self,a,b,n).run
+  end
+  
+  class Simpson < Reimann
+    # Because we're doing n times, halving n.
+    def n= value
+      @n = value/2
+    end
+    def init_loop
+      right = a + delta
+      mid = a + (delta/2)
+      left = a
+      [left,mid,right]
+    end
+    def run_loop a, i
+      left,mid,right = a
+      self.sum += f(left) + 4*f(mid) + f(right)
+      [right,mid+delta,right+delta]  #increment
+    end
+    def end_loop
+      super/6
+    end
+  end
+  def simpson a,b,n
+    Simpson.new(self,a,b,n).run
   end
 end
 
