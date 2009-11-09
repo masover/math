@@ -114,6 +114,32 @@ class Math::Function < Proc
   def simpson a,b,n
     Simpson.new(self,a,b,n).run
   end
+  
+  def bisect range, min_length
+    left_positive = self[range.min] > 0
+    while (range.max-range.min) > min_length
+      midpoint = Rational(range.max - range.min, 2) + range.min
+      puts "midpoint = #{midpoint} = #{midpoint.to_f}"
+      value = self[midpoint]
+      puts "f(midpoint) = #{value} = #{value.to_f}"
+      if value == 0
+        return value    #found exact answer
+      elsif value > 0
+        if left_positive
+          range = midpoint..range.max
+        else
+          range = range.min..midpoint
+        end
+      elsif value < 0
+        if left_positive
+          range = range.min..midpoint
+        else
+          range = midpoint..range.max
+        end
+      end
+    end
+    range
+  end
 end
 
 def F *args, &block
