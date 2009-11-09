@@ -5,6 +5,8 @@
 # as a table of values (measurements, say), and it should be possible to
 # disable the cache, but I haven't implemented either of these.
 
+require 'rational'
+
 class Math::Function < Proc
   attr_reader :values
   def initialize *args, &block
