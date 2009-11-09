@@ -1,5 +1,9 @@
 # An implementation of a mathematical function whose values are cached
 # and a number of useful operations which can be performed on a function.
+# It is possible that, for simpler functions, I waste more time caching values
+# than I do evaluating the function. It should be possible to use the cache
+# as a table of values (measurements, say), and it should be possible to
+# disable the cache, but I haven't implemented either of these.
 
 class Math::Function < Proc
   attr_reader :values
