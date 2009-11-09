@@ -164,7 +164,7 @@ class Math::Function < Proc
     x
   end
   
-  def self.secant a, b
+  def secant a, b
     # force a to be the larger one
     a, b = b, a if b > a
     (self[a] - self[b]) / (a - b)
