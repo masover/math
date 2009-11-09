@@ -140,6 +140,20 @@ class Math::Function < Proc
     end
     range
   end
+  
+  attr_accessor :derivative
+  def newton x=0, precision=5
+    n = 0
+    last_string = nil
+    sprintf_format = "%0.#{precision}f"
+    while (string = sprintf(sprintf_format, x)) != last_string
+      puts "x#{n} = #{string} = #{x}"
+      x = x - self[x]/derivative[x]
+      n += 1
+      last_string = string
+    end
+    x
+  end
 end
 
 def F *args, &block
