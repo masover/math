@@ -1,4 +1,5 @@
-# An implementation of a function whose values are cached
+# An implementation of a mathematical function whose values are cached
+# and a number of useful operations which can be performed on a function.
 
 class Math::Function < Proc
   attr_reader :values
@@ -141,6 +142,8 @@ class Math::Function < Proc
     range
   end
   
+  # I could compute the derivative, but Maxima can do it for me.
+  # Still, I may return to this sometime and actually parse the given block.
   attr_accessor :derivative
   def newton x=0, precision=5
     n = 0
