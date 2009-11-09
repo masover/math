@@ -164,7 +164,3 @@ class Math::Function < Proc
     (self[a] - self[b]) / (a - b)
   end
 end
-
-def F *args, &block
-  Math::Function.new *args, &block
-end
