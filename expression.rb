@@ -29,6 +29,15 @@ class Expression
     end
   end
   
+  module SignBasedOnPositive
+    def negative?
+      !positive?
+    end
+    def sign
+      positive? ? :positive : :negative
+    end
+  end
+  
   class Product < Expression
     def inspect
       "(#{terms.map(&:inspect).join '*'})"
@@ -36,12 +45,24 @@ class Expression
     def positive?
       terms.inject(true){|s,t| s == t.positive?}
     end
-    def negative?
-      !positive?
+    include SignBasedOnPositive
+  end
+  
+  class Difference < Expression
+    attr_accessor :numerator, :denominator
+    def initialize n,d
+      self.numerator, self.denominator = n, d
     end
-    def sign
-      positive? ? :positive : :negative
+    def terms
+      [numerator, denominator]
     end
+    def inspect
+      "(#{terms.map(&:inspect).join '/'})"
+    end
+    def positive?
+      numerator.sign == denominator.sign
+    end
+    include SignBasedOnPositive
   end
   
   class Term < Expression
