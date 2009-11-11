@@ -33,6 +33,15 @@ class Expression
     end
   end
   
+  def + other
+    other = Term.new(other) unless other.kind_of? Expression
+    Sum.new([self,other])
+  end
+  def - other
+    other = Term.new(other) unless other.kind_of? Expression
+    self + other * (-1)
+  end
+  
   class Sum < Expression
     include Collection
     def inspect_inner
@@ -47,6 +56,11 @@ class Expression
     def sign
       positive? ? :positive : :negative
     end
+  end
+  
+  def * other
+    other = Term.new(other) unless other.kind_of? Expression
+    Product.new([self, other])
   end
   
   class Product < Expression
@@ -132,5 +146,12 @@ class Expression
     def inspect_inner
       self.value
     end
+  end
+  
+  
+  # Putting this at the bottom of the file, due to a bug in Kate's syntax highlighting.
+  def / other
+    other = Term.new(other) unless other.kind_of? Expression
+    Quotient.new(self, other)
   end
 end
