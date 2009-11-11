@@ -1,7 +1,10 @@
 class Expression
-  attr_writer :terms, :sign
-  def terms
-    @terms ||= []
+  attr_writer :sign
+  
+  def simple?; false; end
+  
+  def simplify
+    self
   end
   
   def sign
@@ -23,7 +26,15 @@ class Expression
     end
   end
   
+  module Collection
+    attr_reader :terms
+    def initialize t=[]
+      @terms = t
+    end
+  end
+  
   class Sum < Expression
+    include Collection
     def inspect_inner
       "(#{terms.map(&:inspect).join '+'})"
     end
@@ -39,16 +50,24 @@ class Expression
   end
   
   class Product < Expression
+    include Collection
     def inspect
       "(#{terms.map(&:inspect).join '*'})"
     end
     def positive?
       terms.inject(true){|s,t| s == t.positive?}
     end
+    def abs
+      if positive?
+        self
+      else
+        Product.new terms.dup.push(-1)
+      end
+    end
     include SignBasedOnPositive
   end
   
-  class Difference < Expression
+  class Quotient < Expression
     attr_accessor :numerator, :denominator
     def initialize n,d
       self.numerator, self.denominator = n, d
@@ -63,11 +82,22 @@ class Expression
       numerator.sign == denominator.sign
     end
     include SignBasedOnPositive
+    
+    def simplify
+      if terms.all?(&:simple?)
+        Term.new(Rational(numerator,denominator))
+      elsif terms.all?(&:negative?)
+        Difference.new(numerator.abs,denominator.abs)
+      else
+        self
+      end
+    end
   end
   
   class Term < Expression
-    undef_method :terms
-    attr_reader :value  
+    attr_reader :value
+    
+    def simple?; true; end
     
     def value= v
       self.sign = if v.respond_to? :sign
@@ -86,6 +116,21 @@ class Expression
     
     def inspect_inner
       value.abs.inspect
+    end
+    
+    def abs
+      Term.new(value.abs)
+    end
+  end
+  
+  class Symbol < Expression
+    attr_accessor :value
+    def initialize value, sign=:positive
+      self.value = value
+      self.sign = sign
+    end
+    def inspect_inner
+      self.value
     end
   end
 end
