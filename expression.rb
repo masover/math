@@ -55,6 +55,12 @@ class Expression
         @terms = list
       end
     end
+    def simplify
+      self.class.new self.terms.map(&:simplify)
+    end
+    def expand
+      self.class.new self.terms.map(&:simplify)
+    end
   end
   
   def + other
