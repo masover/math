@@ -88,6 +88,10 @@ class Expression
         super
       end
     end
+    
+    def simplify
+      Sum.new(super.terms.reject {|term| term.simple? && term.value == 0})
+    end
   end
   
   module SignBasedOnPositive
@@ -100,7 +104,11 @@ class Expression
   end
   
   def * other
-    Product.new(self, wrap(other))
+    if other.kind_of? Quotient
+      other * self
+    else
+      Product.new(self, wrap(other))
+    end
   end
   
   class Product < Expression
@@ -130,19 +138,27 @@ class Expression
       end
     end
     def simplify
-      if terms.length == 1
-        terms.first
+      new = super
+      if new.terms.length == 1
+        new.terms.first
       else
-        product = terms.inject(&:*)
+        product = new.terms.inject(&:*)
         if product.kind_of? Product
           if product.terms.length == 1
             product.terms.first
           else
-            product
+            product.strip_zeros
           end
         else
           product.simplify
         end
+      end
+    end
+    def strip_zeros
+      if (zero = terms.find {|term| term.simple? && term.value == 0})
+        zero
+      else
+        self
       end
     end
   end
@@ -169,6 +185,8 @@ class Expression
         Term.new(Rational(*t.map(&:value)))
       elsif t.all?(&:negative?)
         Quotient.new(*t.map(&:invert)).simplify
+      elsif t.first.simple? && t.first.value == 0
+        t.first
       else
         new = Quotient.new(*t)
         if new.numerator.kind_of? Quotient
