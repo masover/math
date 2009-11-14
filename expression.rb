@@ -93,7 +93,12 @@ class Expression
     end
     
     def simplify
-      Sum.new(super.terms.reject {|term| term.simple? && term.value == 0})
+      new = Sum.new(super.terms.reject {|term| term.simple? && term.value == 0})
+      if new.terms.length == 1
+        new.terms.first
+      else
+        new
+      end
     end
   end
   
