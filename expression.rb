@@ -173,9 +173,24 @@ class Expression
     def invert
       Term.new(-value)
     end
+    
+    def + other
+      other = wrap(other)
+      other.simple? ? Term.new(self.value+other.value) : super(other)
+    end
+    def * other
+      other = wrap(other)
+      other.simple? ? Term.new(self.value*other.value) : super(other)
+    end
+    
+    # Putting this at the bottom of the file, due to a bug in Kate's syntax highlighting.
+    def / other
+      other = wrap(other)
+      other.simple? ? Term.new(Rational(self.value,other.value)) : super(other)
+    end
   end
   
-  # Putting this at the bottom of the file, due to a bug in Kate's syntax highlighting.
+  # Also at the bottom of the file, because of the same bug.
   def / other
     Quotient.new(self, wrap(other))
   end
