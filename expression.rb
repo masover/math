@@ -129,12 +129,10 @@ class Expression
     include SignBasedOnPositive
     def * other
       other = wrap(other)
-      if other.simple?
-        Product.new(terms.first*other,*terms[1..terms.length])
-      elsif other.kind_of? Product
+      if other.kind_of? Product
         Product.new(self.terms+other.terms)
       else
-        super(other)
+        Product.new(self.terms+[other])
       end
     end
     def simplify
@@ -147,18 +145,18 @@ class Expression
           if product.terms.length == 1
             product.terms.first
           else
-            product.strip_zeros
+            product.strip
           end
         else
           product.simplify
         end
       end
     end
-    def strip_zeros
+    def strip
       if (zero = terms.find {|term| term.simple? && term.value == 0})
         zero
       else
-        self
+        Product.new(terms.reject{|term| term.simple? && term.value == 1})
       end
     end
   end
