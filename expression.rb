@@ -3,6 +3,19 @@ class Expression
   
   def simple?; false; end
   
+  def self.wrap other
+    if other.kind_of? Expression
+      other
+    elsif other.kind_of? ::Symbol
+      Symbol.new(other)
+    else
+      Term.new(other)
+    end
+  end
+  def wrap other
+    Expression.wrap other
+  end
+  
   def simplify
     self
   end
@@ -18,6 +31,10 @@ class Expression
     sign == :negative
   end
   
+  def invert
+    Product.new([Term.new(-1), self])
+  end
+  
   def inspect
     if positive?
       inspect_inner
@@ -28,18 +45,17 @@ class Expression
   
   module Collection
     attr_reader :terms
-    def initialize t=[]
-      @terms = t
+    def initialize *list
+      @terms = list
     end
   end
   
   def + other
     other = Term.new(other) unless other.kind_of? Expression
-    Sum.new([self,other])
+    Sum.new(self,wrap(other))
   end
   def - other
-    other = Term.new(other) unless other.kind_of? Expression
-    self + other * (-1)
+    self + wrap(other) * (-1)
   end
   
   class Sum < Expression
@@ -59,8 +75,7 @@ class Expression
   end
   
   def * other
-    other = Term.new(other) unless other.kind_of? Expression
-    Product.new([self, other])
+    Product.new(self, wrap(other))
   end
   
   class Product < Expression
@@ -75,10 +90,18 @@ class Expression
       if positive?
         self
       else
-        Product.new terms.dup.push(-1)
+        invert
       end
     end
     include SignBasedOnPositive
+    def * other
+      other = wrap(other)
+      if other.simple?
+        Product.new(terms.first*other,*terms[1..terms.length])
+      else
+        super(other)
+      end
+    end
   end
   
   class Quotient < Expression
@@ -98,13 +121,25 @@ class Expression
     include SignBasedOnPositive
     
     def simplify
-      if terms.all?(&:simple?)
-        Term.new(Rational(numerator,denominator))
+      t = terms.map(&:simplify)
+      if t.all?(&:simple?)
+        Term.new(Rational(*t.map(&:value)))
       elsif terms.all?(&:negative?)
-        Difference.new(numerator.abs,denominator.abs)
+        Difference.new(*t.map(&:invert))
       else
         self
       end
+    end
+  end
+  
+  class Symbol < Expression
+    attr_accessor :value
+    def initialize value, sign=:positive
+      self.value = value
+      self.sign = sign
+    end
+    def inspect_inner
+      self.value
     end
   end
   
@@ -135,23 +170,13 @@ class Expression
     def abs
       Term.new(value.abs)
     end
-  end
-  
-  class Symbol < Expression
-    attr_accessor :value
-    def initialize value, sign=:positive
-      self.value = value
-      self.sign = sign
-    end
-    def inspect_inner
-      self.value
+    def invert
+      Term.new(-value)
     end
   end
-  
   
   # Putting this at the bottom of the file, due to a bug in Kate's syntax highlighting.
   def / other
-    other = Term.new(other) unless other.kind_of? Expression
-    Quotient.new(self, other)
+    Quotient.new(self, wrap(other))
   end
 end
