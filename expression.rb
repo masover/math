@@ -55,11 +55,18 @@ class Expression
         @terms = list
       end
     end
-    def simplify
-      self.class.new self.terms.map(&:simplify)
-    end
     def expand
-      self.class.new self.terms.map(&:simplify)
+      self.class.new self.terms.map(&:expand)
+    end
+    
+    def simplify
+      t = self.terms.map(&:simplify)
+      block = proc{|t| t.kind_of? self.class}
+      while t.any? &block
+        t = t.reject(&block) +
+            t.select(&block).map(&:terms).flatten
+      end
+      self.class.new(t)
     end
   end
   
@@ -85,19 +92,36 @@ class Expression
             sum + term*other_term
           }
         }
-      elsif other.simple?
+      elsif other.simple? || other.kind_of?(Symbol)
         Sum.new terms.map{|term| term * other}
       else
         super
       end
     end
     
-    def simplify
-      new = Sum.new(super.terms.reject {|term| term.simple? && term.value == 0})
-      if new.terms.length == 1
-        new.terms.first
+    def + other
+      if other.kind_of? Sum
+        Sum.new(terms + other.terms)
       else
-        new
+        Sum.new(terms+[other])
+      end
+    end
+    
+    def simplify
+      sum = super.terms.reject {|term|
+        (term.simple? && term.value == 0) ||
+        (term.kind_of?(Collection) && term.terms.length == 0)
+      }.inject(&:+)
+      if sum.nil?
+        Term.new 0
+      elsif sum.kind_of? Sum
+        if sum.terms.length == 1
+          sum.terms.first
+        else
+          sum
+        end
+      else
+        sum.simplify
       end
     end
   end
@@ -148,7 +172,9 @@ class Expression
       if new.terms.length == 1
         new.terms.first
       else
-        product = new.terms.inject(&:*)
+        a = new.terms.select(&:simple?).inject(&:*)
+        b = new.terms.reject(&:simple?).inject(&:*)
+        product = [a,b].compact.inject(&:*)
         if product.kind_of? Product
           if product.terms.length == 1
             product.terms.first
