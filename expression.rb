@@ -46,8 +46,15 @@ class Expression
     end
   end
   
+  module CollectCompare
+    def == other
+      other.kind_of?(self.class) && other.terms == self.terms
+    end
+  end
+  
   module Collection
     attr_reader :terms
+    include CollectCompare
     def initialize *list
       if (list.length == 1) && list.first.kind_of?(Array)
         @terms = list.first
@@ -177,8 +184,13 @@ class Expression
         new.terms.first
       else
         a = new.terms.select(&:simple?).inject(&:*)
-        b = new.terms.reject(&:simple?).inject(&:*)
-        product = [a,b].compact.inject(&:*)
+        not_a = new.terms.reject(&:simple?)
+        unless not_a.nil?
+          b = not_a.select{|t|t.kind_of? Symbol}
+          b = b.sort{|a,b|a.value<=>b.value}.inject(&:*) unless b.nil?
+          c = not_a.reject{|t|t.kind_of? Symbol}.inject(&:*)
+        end
+        product = [a,b,c].compact.inject(&:*)
         if product.kind_of? Product
           if product.terms.length == 1
             product.terms.first
@@ -200,6 +212,7 @@ class Expression
   end
   
   class Quotient < Expression
+    include CollectCompare
     attr_accessor :numerator, :denominator
     def initialize n,d
       self.numerator, self.denominator = n, d
@@ -284,7 +297,14 @@ class Expression
     # / stupid Kate bug.
   end
   
+  module ValueCompare
+    def == other
+      other.kind_of?(self.class) && other.value == self.value
+    end
+  end
+  
   class Symbol < Expression
+    include ValueCompare
     attr_accessor :value
     def initialize value, sign=:positive
       self.value = value
@@ -300,9 +320,17 @@ class Expression
         self
       end
     end
+    def * other
+      if other.kind_of?(Symbol) && other.value == value
+        Power.new(self, wrap(2))
+      else
+        super
+      end
+    end
   end
   
   class Term < Expression
+    include ValueCompare
     attr_reader :value
     
     def simple?; true; end
@@ -358,7 +386,8 @@ class Expression
     Quotient.new(self, wrap(other))
   end
   
-  class Power
+  class Power < Expression
+    include CollectCompare
     attr_accessor :base, :exponent
     def initialize n,d
       self.base, self.exponent = n, d
@@ -376,7 +405,15 @@ class Expression
       if t.all?(&:simple?)
         t.first ** t.last
       else
-        Power.new(t)
+        self
+      end
+    end
+    
+    def * other
+      if other == base
+        Power.new(self.base,self.exponent+1)
+      else
+        super
       end
     end
     
@@ -384,8 +421,8 @@ class Expression
       Power.new(terms.map{|t|t.substitute vars})
     end
     
-    def inner_inspect
-      "#{base}^#{exponent}"
+    def inspect_inner
+      "#{base.inspect}^#{exponent.inspect}"
     end
   end
 end
