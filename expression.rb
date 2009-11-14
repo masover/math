@@ -67,6 +67,18 @@ class Expression
     def inspect_inner
       "(#{terms.map(&:inspect).join '+'})"
     end
+    
+    def * other
+      if other.kind_of? Sum
+        terms.inject(Term.new(0)) {|sum,term|
+          other.terms.inject(sum) {|sum,other_term|
+            sum + term*other_term
+          }
+        }
+      else
+        super
+      end
+    end
   end
   
   module SignBasedOnPositive
