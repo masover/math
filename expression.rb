@@ -49,7 +49,7 @@ class Expression
   module Collection
     attr_reader :terms
     def initialize *list
-      if (list.length == 0) && list.first.kind_of?(Array)
+      if (list.length == 1) && list.first.kind_of?(Array)
         @terms = list.first
       else
         @terms = list
