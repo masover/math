@@ -78,12 +78,15 @@ class Expression
     end
     
     def * other
+      other = wrap other
       if other.kind_of? Sum
         terms.inject(Term.new(0)) {|sum,term|
           other.terms.inject(sum) {|sum,other_term|
             sum + term*other_term
           }
         }
+      elsif other.simple?
+        Sum.new terms.map{|term| term * other}
       else
         super
       end
@@ -104,7 +107,7 @@ class Expression
   end
   
   def * other
-    if other.kind_of? Quotient
+    if other.kind_of?(Quotient) || other.kind_of?(Sum) || other.kind_of?(Product)
       other * self
     else
       Product.new(self, wrap(other))
