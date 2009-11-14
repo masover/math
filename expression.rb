@@ -353,8 +353,39 @@ class Expression
     end
   end
   
-  # Also at the bottom of the file, because of the same bug.
+  # But this one seems to fix it. Close enough.
   def / other
     Quotient.new(self, wrap(other))
+  end
+  
+  class Power
+    attr_accessor :base, :exponent
+    def initialize n,d
+      self.base, self.exponent = n, d
+    end
+    def terms
+      [base, exponent]
+    end
+    
+    def expand
+      Product.new(exponent.times.map{|x| base})
+    end
+    
+    def simplify
+      t = terms.map(&:simplify)
+      if t.all?(&:simple?)
+        t.first ** t.last
+      else
+        Power.new(t)
+      end
+    end
+    
+    def substitute vars
+      Power.new(terms.map{|t|t.substitute vars})
+    end
+    
+    def inner_inspect
+      "#{base}^#{exponent}"
+    end
   end
 end
