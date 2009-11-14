@@ -158,6 +158,27 @@ class Expression
           Quotient.new(new.numerator*new.denominator.denominator,
                        new.denominator.numerator
                       ).simplify
+        elsif t.all?{|t|t.kind_of? Product}
+          common = new.numerator.terms & new.denominator.terms
+          if common.length > 0
+            Quotient.new(Product.new(new.numerator.terms - common),
+                         Product.new(new.denominator.terms - common)
+                        ).simplify
+          else
+            new
+          end
+        elsif new.numerator.kind_of?(Product) &&
+              new.denominator.kind_of?(Term) &&
+              new.numerator.terms.include?(new.denominator)
+          Quotient.new(Product.new(new.numerator.terms - [new.denominator]),
+                       new.denominator
+                      ).simplify
+        elsif new.numerator.kind_of?(Term) &&
+              new.denominator.kind_of?(Product) &&
+              new.denominator.terms.include?(new.numerator)
+          Quotient.new(new.numerator,
+                       Product.new(new.denominator.terms - [new.numerator])
+                      ).simplify
         else
           new
         end
