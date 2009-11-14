@@ -8,19 +8,19 @@ end
 
 E = Object.new
 def E obj
-  Expression::Term.new(obj)
+  Expression.wrap(obj)
 end
 def E.+ other
-  Expression::Term.new(other)
+  E other
 end
 def E.- other
-  Expression::Term.new(-1) * other
+  E(-1) * other
 end
 def E.* other
-  Expression::Term.new(other)
+  E other
 end
 def E./ other
-  Expression::Term.new(1) / other
+  E(1) / other
 end
 
 module Kernel
