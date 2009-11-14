@@ -146,12 +146,32 @@ class Expression
       t = terms.map(&:simplify)
       if t.all?(&:simple?)
         Term.new(Rational(*t.map(&:value)))
-      elsif terms.all?(&:negative?)
-        Difference.new(*t.map(&:invert))
+      elsif t.all?(&:negative?)
+        Quotient.new(*t.map(&:invert)).simplify
       else
-        self
+        new = Quotient.new(*t)
+        if new.numerator.kind_of? Quotient
+          Quotient.new(new.numerator.numerator,
+                       new.denominator*new.numerator.denominator
+                      ).simplify
+        elsif new.denominator.kind_of? Quotient
+          Quotient.new(new.numerator*new.denominator.denominator,
+                       new.denominator.numerator
+                      ).simplify
+        else
+          new
+        end
       end
     end
+    
+    def * other
+      Quotient.new(numerator*wrap(other),denominator)
+    end
+    
+    def / other
+      Quotient.new(numerator,denominator*wrap(other))
+    end
+    # / stupid Kate bug.
   end
   
   class Symbol < Expression
