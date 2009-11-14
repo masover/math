@@ -19,6 +19,9 @@ class Expression
   def simplify
     self
   end
+  def expand
+    self
+  end
   
   def sign
     @sign ||= :positive
@@ -194,6 +197,16 @@ class Expression
         else
           new
         end
+      end
+    end
+    
+    def expand
+      if numerator.kind_of? Sum
+        Sum.new(numerator.terms.map {|term|
+          Quotient.new(term,denominator)
+        })
+      else
+        self
       end
     end
     
