@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
-require File.join(File.dirname(__FILE__), 'function')
-require File.join(File.dirname(__FILE__), 'expression')
+%w(function expression lagrange).each do |file|
+  require File.join(File.dirname(__FILE__), file)
+end
 
 def F *args, &block
   Math::Function.new *args, &block
