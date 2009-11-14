@@ -15,3 +15,8 @@ def Math.lagrange points
     } * j.last + sum
   }
 end
+
+def Math.lagrange_integral points, range=nil
+  # Simplify first, then expand the quotients, finally simplify again.
+  l = Math.lagrange(points).simplify.expand.simplify
+end

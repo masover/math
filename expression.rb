@@ -68,6 +68,10 @@ class Expression
       end
       self.class.new(t)
     end
+    
+    def substitute vars
+      self.class.new(terms.map{|t|t.substitute vars})
+    end
   end
   
   def + other
@@ -268,6 +272,10 @@ class Expression
     
     def * other
       Quotient.new(numerator*wrap(other),denominator)
+    end 
+    
+    def substitute vars
+      Quotient.new(*terms.map{|t|t.substitute vars})
     end
     
     def / other
@@ -284,6 +292,13 @@ class Expression
     end
     def inspect_inner
       self.value
+    end
+    def substitute vars
+      if(result = vars[value])
+        Term.new(result)
+      else
+        self
+      end
     end
   end
   
@@ -325,6 +340,10 @@ class Expression
     def * other
       other = wrap(other)
       other.simple? ? Term.new(self.value*other.value) : super(other)
+    end
+    
+    def substitute vars
+      self
     end
     
     # Putting this at the bottom of the file, due to a bug in Kate's syntax highlighting.
