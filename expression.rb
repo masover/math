@@ -46,7 +46,11 @@ class Expression
   module Collection
     attr_reader :terms
     def initialize *list
-      @terms = list
+      if (list.length == 0) && list.first.kind_of?(Array)
+        @terms = list.first
+      else
+        @terms = list
+      end
     end
   end
   
@@ -98,16 +102,26 @@ class Expression
       other = wrap(other)
       if other.simple?
         Product.new(terms.first*other,*terms[1..terms.length])
+      elsif other.kind_of? Product
+        Product.new(self.terms+other.terms)
       else
         super(other)
       end
     end
     def simplify
-      simple = terms.select(&:simple?).inject{|product, term| product*term}
-      if simple.nil?
-        self
+      if terms.length == 1
+        terms.first
       else
-        Product.new(simple,*terms.reject(&:simple?))
+        product = terms.inject(&:*)
+        if product.kind_of? Product
+          if product.terms.length == 1
+            product.terms.first
+          else
+            product
+          end
+        else
+          product.simplify
+        end
       end
     end
   end
