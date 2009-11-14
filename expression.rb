@@ -102,6 +102,14 @@ class Expression
         super(other)
       end
     end
+    def simplify
+      simple = terms.select(&:simple?).inject{|product, term| product*term}
+      if simple.nil?
+        self
+      else
+        Product.new(simple,*terms.reject(&:simple?))
+      end
+    end
   end
   
   class Quotient < Expression
