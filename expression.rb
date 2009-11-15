@@ -1,3 +1,24 @@
+# This is a first attempt at an object-oriented representation of some simple
+# expressions. The idea is to be able to perform some simple simplification,
+# expansion, and integration, as Maxima does. In retrospect, I probably
+# should've found a way to interface with Maxima instead.
+
+# You'll notice that it largely ignores the mathematical property of the
+# problem I was analyzing, instead being as generic as is reasonable -- that
+# is, while I've ommitted functionality not relevant to this problem, I've also
+# made little progress in simplifying the problem in the general form. Instead,
+# I've programmed the machine to clumsily and inefficiently simplify specific
+# problems for me. A glance at Wikipedia shows that I could have very likely
+# improved my results with one of _many_ algorithms for polynomial
+# interpolation. I would still have needed a way to integrate them, however,
+# and many of the other methods lose precision at some point -- I like to delay
+# loss of precision as long as possible.
+
+# A bug in the current integration: It doesn't integrate with respect to any variable
+# It is therefore assuming that there is only a single variable in the expression,
+# and integrates with respect to that variable. That's almost by design, but it won't
+# complain if you try to integrate, for example, 2x + 3y with respect to x.
+
 class Expression
   attr_writer :sign
   
