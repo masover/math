@@ -17,6 +17,13 @@ def Math.lagrange points
 end
 
 def Math.lagrange_integral points, range=nil
-  # Simplify first, then expand the quotients, finally simplify again.
-  l = Math.lagrange(points).simplify.expand.simplify
+  # It's not easy to explain why this works the way it does.
+  integral = Math.lagrange(points).simplify.expand.simplify.integrate
+  if range
+    result = (integral.substitute(:x => range.max) - integral.substitute(:x => range.min)).simplify
+    raise "Substitution failed!" unless result.simple?
+    result.value
+  else
+    integral.simplify
+  end
 end

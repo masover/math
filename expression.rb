@@ -1,6 +1,10 @@
 class Expression
   attr_writer :sign
   
+  def integration_error
+    "I don't know how to integrate #{inspect}."
+  end
+  
   def simple?; false; end
   
   def self.wrap other
@@ -135,6 +139,10 @@ class Expression
         sum.simplify
       end
     end
+    
+    def integrate
+      Sum.new(terms.map(&:integrate))
+    end
   end
   
   module SignBasedOnPositive
@@ -207,6 +215,26 @@ class Expression
         zero
       else
         Product.new(terms.reject{|term| term.simple? && term.value == 1})
+      end
+    end
+    
+    def integrate
+      simple = terms.select(&:simple?).inject(&:*)
+      left = terms.reject(&:simple?)
+      if left.length > 1
+        raise integration_error
+      else
+        left = left.first
+        if left.kind_of? Symbol
+          base = left
+          exponent = wrap 2
+        elsif left.kind_of? Power
+          base = left.base
+          raise integration_error unless base.kind_of? Symbol
+          exponent = left.exponent+1
+          raise integration_error unless exponent.simple? && (exponent.value != 0)
+        end
+        simple * Power.new(base,exponent) / exponent
       end
     end
   end
@@ -289,6 +317,14 @@ class Expression
     
     def substitute vars
       Quotient.new(*terms.map{|t|t.substitute vars})
+    end
+    
+    def integrate
+      if denominator.simple?
+        Quotient.new(numerator.integrate,denominator)
+      else
+        raise integration_error
+      end
     end
     
     def / other
@@ -403,7 +439,7 @@ class Expression
     def simplify
       t = terms.map(&:simplify)
       if t.all?(&:simple?)
-        t.first ** t.last
+        wrap(t.first.value ** t.last.value)
       else
         self
       end
@@ -418,7 +454,7 @@ class Expression
     end
     
     def substitute vars
-      Power.new(terms.map{|t|t.substitute vars})
+      Power.new(*terms.map{|t|t.substitute vars})
     end
     
     def inspect_inner
