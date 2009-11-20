@@ -161,8 +161,8 @@ class Expression
       end
     end
     
-    def integrate
-      Sum.new(terms.map(&:integrate))
+    def integrate var
+      Sum.new(terms.map{|t| t.integrate var})
     end
   end
   
@@ -239,23 +239,13 @@ class Expression
       end
     end
     
-    def integrate
+    def integrate var
       simple = terms.select(&:simple?).inject(&:*)
       left = terms.reject(&:simple?)
       if left.length > 1
         raise integration_error
       else
-        left = left.first
-        if left.kind_of? Symbol
-          base = left
-          exponent = wrap 2
-        elsif left.kind_of? Power
-          base = left.base
-          raise integration_error unless base.kind_of? Symbol
-          exponent = left.exponent+1
-          raise integration_error unless exponent.simple? && (exponent.value != 0)
-        end
-        simple * Power.new(base,exponent) / exponent
+        simple * left.first.integrate(var)
       end
     end
   end
@@ -340,9 +330,9 @@ class Expression
       Quotient.new(*terms.map{|t|t.substitute vars})
     end
     
-    def integrate
+    def integrate var
       if denominator.simple?
-        Quotient.new(numerator.integrate,denominator)
+        Quotient.new(numerator.integrate(var),denominator)
       else
         raise integration_error
       end
@@ -383,6 +373,10 @@ class Expression
       else
         super
       end
+    end
+    
+    def integrate var
+      Power.new(self,wrap(1)).integrate var
     end
   end
   
@@ -429,6 +423,10 @@ class Expression
     
     def substitute vars
       self
+    end
+    
+    def integrate var
+      self * wrap(var)
     end
     
     # Putting this at the bottom of the file, due to a bug in Kate's syntax highlighting.
@@ -481,5 +479,20 @@ class Expression
     def inspect_inner
       "#{base.inspect}^#{exponent.inspect}"
     end
+    
+    def integrate var
+      if base == wrap(var) && exponent.simple?
+        new_exponent = exponent + 1
+        raise integration_error unless new_exponent.simple? && (new_exponent.value != 0)
+        Power.new(base,new_exponent) / new_exponent
+      else
+        raise integration_error
+      end
+    end
   end
+  
+  def ** other
+    Power.new(self,wrap(other))
+  end
+  alias ^ **
 end

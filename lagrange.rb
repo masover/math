@@ -21,7 +21,7 @@ end
 # The indefinite integral given doesn't include c.
 def Math.lagrange_integral points, range=nil
   # It's not easy to explain why this works the way it does.
-  integral = Math.lagrange(points).simplify.expand.simplify.integrate
+  integral = Math.lagrange(points).simplify.expand.simplify.integrate :x
   if range
     # Definite integration
     result = (integral.substitute(:x => range.max) -
