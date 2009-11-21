@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
+require 'rubygems'
+gem 'math'
 %w(function expression lagrange).each do |file|
-  require File.join(File.dirname(__FILE__), file)
+  require File.join('math', file)
 end
 
 def F *args, &block

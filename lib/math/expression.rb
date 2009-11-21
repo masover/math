@@ -19,6 +19,8 @@
 # and integrates with respect to that variable. That's almost by design, but it won't
 # complain if you try to integrate, for example, 2x + 3y with respect to x.
 
+require 'rational'
+
 class Expression
   attr_writer :sign
   

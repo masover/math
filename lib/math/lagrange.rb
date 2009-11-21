@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__),'expression')
+require 'math/expression'
 
 # Finds the Lagrange Polynomial (as an Expression) for the given points
 def Math.lagrange points

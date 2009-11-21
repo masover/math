@@ -1,5 +1,5 @@
 require 'sinatra'
-require File.join(File.dirname(__FILE__),'function')
+require 'math/function'
 
 f = Math::Function.new {|x| Math::E**(-x**2)}
 syms = %w(midpoint trapezoid simpson).map(&:to_sym)
