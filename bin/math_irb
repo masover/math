@@ -1,6 +1,4 @@
 #!/usr/bin/env ruby
-require 'rubygems'
-gem 'math'
 %w(function expression lagrange).each do |file|
   require File.join('math', file)
 end
